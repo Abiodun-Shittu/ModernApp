@@ -11,13 +11,7 @@ function App() {
       .catch(error => console.error('Error fetching message:', error));
   }, []);
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <p>{message}</p>
-      </header>
-    </div>
-  );
+  return <p className="font-bold p-4 text-3xl">{message}</p>;
 }
 
 export default App
