@@ -16,7 +16,7 @@ export const chatService = {
       prompt: string
    ): Promise<ChatResponse> {
       const response = await client.responses.create({
-         model: 'gpt-4o-mini',
+         model: 'gpt-4o-mini!',
          input: prompt,
          temperature: 0.2,
          max_output_tokens: 100,
