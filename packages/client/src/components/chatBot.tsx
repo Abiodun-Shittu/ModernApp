@@ -50,12 +50,20 @@ const ChatBot = () => {
          handleSubmit(onSubmit)();
       }
    };
+   const onCopyMessage = (e: React.ClipboardEvent) => {
+      const selection = window.getSelection()?.toString().trim();
+      if (selection) {
+         e.preventDefault();
+         e.clipboardData.setData('text/plain', selection);
+      }
+   };
    return (
       <div>
          <div className="flex flex-col gap-3 mb-10">
             {messages.map((message, index) => (
                <p
                   key={index}
+                  onCopy={onCopyMessage}
                   className={`px-3 py-1 rounded-xl  
                      ${
                         message.role === 'user'
