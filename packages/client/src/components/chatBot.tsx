@@ -1,5 +1,5 @@
 import { FaArrowUp } from 'react-icons/fa';
-import { useForm } from 'react-hook-form';
+import { set, useForm } from 'react-hook-form';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -21,6 +21,7 @@ type Message = {
 const ChatBot = () => {
    const [messages, setMessages] = useState<Message[]>([]);
    const [isBotTyping, setIsBotTyping] = useState(false);
+   const [error, setError] = useState('');
    const lastMessageRef = useRef<HTMLDivElement | null>(null);
    const conversationId = useRef(crypto.randomUUID());
    const { register, handleSubmit, reset, formState } = useForm<FormData>();
@@ -30,18 +31,28 @@ const ChatBot = () => {
    }, [messages]);
 
    const onSubmit = async ({ prompt }: FormData) => {
-      setMessages((prev) => [...prev, { content: prompt, role: 'user' }]);
-      setIsBotTyping(true);
-      reset({ prompt: '' });
-      const { data } = await axios.post<ChatResponse>('/api/chat', {
-         prompt,
-         conversationId: conversationId.current,
-      });
+      try {
+         setMessages((prev) => [...prev, { content: prompt, role: 'user' }]);
+         setIsBotTyping(true);
+         setError('');
+         reset({ prompt: '' });
+         const { data } = await axios.post<ChatResponse>('/api/chat', {
+            prompt,
+            conversationId: conversationId.current,
+         });
 
-      setMessages((prev) => [...prev, { content: data.message, role: 'bot' }]);
-      setIsBotTyping(false);
+         setMessages((prev) => [
+            ...prev,
+            { content: data.message, role: 'bot' },
+         ]);
 
-      // console.log('Response from server:', data);
+         // console.log('Response from server:', data);
+      } catch (error) {
+         console.error('Error fetching chat response:', error);
+         setError('Failed to get response. Please try again.');
+      } finally {
+         setIsBotTyping(false);
+      }
    };
 
    const onKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
@@ -80,6 +91,11 @@ const ChatBot = () => {
                   <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse"></div>
                   <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.2s]"></div>
                   <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.4s]"></div>
+               </div>
+            )}
+            {error && (
+               <div className="px-3 py-1 rounded-xl bg-red-100 text-red-800 self-start">
+                  {error}
                </div>
             )}
          </div>
