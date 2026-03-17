@@ -29,8 +29,6 @@ const ChatBot = () => {
             ...prev,
             { content: data.message, role: 'bot' },
          ]);
-
-         // console.log('Response from server:', data);
       } catch (error) {
          console.error('Error fetching chat response:', error);
          setError('Failed to get response. Please try again.');
