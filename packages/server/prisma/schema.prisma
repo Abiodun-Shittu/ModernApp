@@ -10,5 +10,33 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  reviews     Review[]
+  summary     Summary?
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  author    String
+  rating    Int
+  content   String
+  createdAt DateTime @default(now())
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Summary {
+  id          Int      @id @default(autoincrement())
+  productId   Int      @unique
+  product     Product  @relation(fields: [productId], references: [id])
+  content     String
+  generatedAt DateTime @default(now())
+  expiresAt   DateTime
 }
