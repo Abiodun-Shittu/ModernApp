@@ -1,12 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import OpenAI from 'openai';
 import { conversationRepository } from '../repositories/conversation.repository';
-// import template from '../prompts/chatbot.txt';
-
-const client = new OpenAI({
-   apiKey: process.env.OPENAI_API_KEY,
-});
+import { llmClient } from '../llm/client';
 
 const template = fs.readFileSync(
    path.join(__dirname, '..', 'prompts', 'chatbot.txt'),
@@ -29,13 +24,13 @@ export const chatService = {
       conversationId: string,
       prompt: string
    ): Promise<ChatResponse> {
-      const response = await client.responses.create({
+      const response = await llmClient.generateText({
          model: 'gpt-4o-mini',
          instructions,
-         input: prompt,
+         prompt,
          temperature: 0.2,
-         max_output_tokens: 100,
-         previous_response_id:
+         maxTokens: 100,
+         previousRespondId:
             conversationRepository.getLastResponseId(conversationId),
       });
 
@@ -43,7 +38,7 @@ export const chatService = {
 
       return {
          id: response.id,
-         message: response.output_text,
+         message: response.text,
       };
    },
 };
