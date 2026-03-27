@@ -1,6 +1,13 @@
+import fs from 'fs';
+import path from 'path';
 import type { Review } from '../generated/prisma';
 import { llmClient } from '../llm/client';
 import { reviewRepository } from '../repositories/review.repository';
+
+const template = fs.readFileSync(
+   path.join(__dirname, '..', 'prompts', 'summarize-reviews.txt'),
+   'utf-8'
+);
 
 export const reviewService = {
    async getReviews(productId: number): Promise<Review[]> {
@@ -12,7 +19,8 @@ export const reviewService = {
       // Get the last 10 reviews for the product
       const reviews = await reviewRepository.getReviews(productId, 10);
       const joinedReviews = reviews.map((r) => r.content).join('\n\n');
-      const prompt = `Summarize the following customer reviews into a short paragraph highlighting the key themes, both positive and negative: ${joinedReviews}`;
+
+      const prompt = template.replace('{reviews}', joinedReviews);
 
       const response = await llmClient.generateText({
          model: 'gpt-4.1',
