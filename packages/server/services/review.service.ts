@@ -3,6 +3,7 @@ import path from 'path';
 import type { Review } from '../generated/prisma';
 import { llmClient } from '../llm/client';
 import { reviewRepository } from '../repositories/review.repository';
+import { response } from 'express';
 
 const template = fs.readFileSync(
    path.join(__dirname, '..', 'prompts', 'summarize-reviews.txt'),
@@ -22,13 +23,16 @@ export const reviewService = {
 
       const prompt = template.replace('{reviews}', joinedReviews);
 
-      const response = await llmClient.generateText({
+      const { text: summary } = await llmClient.generateText({
          model: 'gpt-4.1',
          prompt,
          temperature: 0.2,
          maxTokens: 500,
       });
 
-      return response.text;
+      // Store the summary in the database with an expiration time
+      await reviewRepository.storeReviewSummary(productId, summary);
+
+      return summary;
    },
 };
