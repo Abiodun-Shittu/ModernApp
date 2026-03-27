@@ -3,7 +3,6 @@ import path from 'path';
 import type { Review } from '../generated/prisma';
 import { llmClient } from '../llm/client';
 import { reviewRepository } from '../repositories/review.repository';
-import { response } from 'express';
 
 const template = fs.readFileSync(
    path.join(__dirname, '..', 'prompts', 'summarize-reviews.txt'),
@@ -16,8 +15,12 @@ export const reviewService = {
       return reviewRepository.getReviews(productId);
    },
    async summarizeReviews(productId: number): Promise<string> {
-      // Implementation for summarizing reviews
-      // Get the last 10 reviews for the product
+      const existingSummary =
+         await reviewRepository.getReviewSummary(productId);
+      if (existingSummary && new Date(existingSummary.expiresAt) > new Date()) {
+         return existingSummary.content;
+      }
+
       const reviews = await reviewRepository.getReviews(productId, 10);
       const joinedReviews = reviews.map((r) => r.content).join('\n\n');
 
