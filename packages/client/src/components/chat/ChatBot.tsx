@@ -39,8 +39,8 @@ const ChatBot = () => {
          ]);
          notificationAudio.play();
       } catch (error) {
-         console.error('Error fetching chat response:', error);
-         setError('Failed to get response. Please try again.');
+         console.error('Error fetching chat response: ', error);
+         setError('Failed to get response, Please try again.');
       } finally {
          setIsBotTyping(false);
       }
