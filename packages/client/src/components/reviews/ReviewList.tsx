@@ -1,10 +1,10 @@
 import axios from 'axios';
-import Skeleton from 'react-loading-skeleton';
 import StarRating from './StarRating';
 import { HiSparkles } from 'react-icons/hi2';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '../ui/button';
 import { useState } from 'react';
+import ReviewSkelton from './ReviewSkelton';
 
 type Props = {
    productId: number;
@@ -29,6 +29,7 @@ type GetSummaryResponse = {
 
 const ReviewList = ({ productId }: Props) => {
    const [summary, setSummary] = useState('');
+   const [isSummarizing, setIsSummarizing] = useState(false);
 
    const {
       data: reviewData,
@@ -40,12 +41,16 @@ const ReviewList = ({ productId }: Props) => {
    });
 
    const handleSummarize = async () => {
+      setIsSummarizing(true);
+
       // Call API to get summary
       const { data } = await axios.post<GetSummaryResponse>(
          `/api/products/${productId}/reviews/summarize`
       );
+
       // setSummary(response.summary);
       setSummary(data.summary);
+      setIsSummarizing(false);
    };
    const fetchReviews = async () => {
       const { data } = await axios.get<GetReviewsResponse>(
@@ -58,11 +63,7 @@ const ReviewList = ({ productId }: Props) => {
       return (
          <div className="flex flex-col gap-5">
             {[1, 2, 3].map((i) => (
-               <div key={i}>
-                  <Skeleton width={150} />
-                  <Skeleton height={100} />
-                  <Skeleton count={2} />
-               </div>
+               <ReviewSkelton key={i} />
             ))}
          </div>
       );
@@ -88,10 +89,21 @@ const ReviewList = ({ productId }: Props) => {
             {currentSummary ? (
                <p>{currentSummary}</p>
             ) : (
-               <Button onClick={handleSummarize}>
-                  <HiSparkles />
-                  Summarize
-               </Button>
+               <div>
+                  <Button
+                     onClick={handleSummarize}
+                     className="cursor-pointer"
+                     disabled={isSummarizing}
+                  >
+                     <HiSparkles />
+                     Summarize
+                  </Button>
+                  {isSummarizing && (
+                     <div className="py-3">
+                        <ReviewSkelton />
+                     </div>
+                  )}
+               </div>
             )}
          </div>
          <div className="flex flex-col gap-5">
