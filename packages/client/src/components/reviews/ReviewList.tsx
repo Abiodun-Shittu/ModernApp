@@ -30,6 +30,7 @@ type GetSummaryResponse = {
 const ReviewList = ({ productId }: Props) => {
    const [summary, setSummary] = useState('');
    const [isSummarizing, setIsSummarizing] = useState(false);
+   const [summaryError, setSummaryError] = useState('');
 
    const {
       data: reviewData,
@@ -41,16 +42,23 @@ const ReviewList = ({ productId }: Props) => {
    });
 
    const handleSummarize = async () => {
-      setIsSummarizing(true);
+      try {
+         setIsSummarizing(true);
+         setSummaryError('');
 
-      // Call API to get summary
-      const { data } = await axios.post<GetSummaryResponse>(
-         `/api/products/${productId}/reviews/summarize`
-      );
+         // Call API to get summary
+         const { data } = await axios.post<GetSummaryResponse>(
+            `/api/products/${productId}/reviews/summarize`
+         );
 
-      // setSummary(response.summary);
-      setSummary(data.summary);
-      setIsSummarizing(false);
+         // setSummary(response.summary);
+         setSummary(data.summary);
+      } catch (error) {
+         console.error('Error summarizing reviews:', error);
+         setSummaryError('Failed to summarize reviews. Please try again.');
+      } finally {
+         setIsSummarizing(false);
+      }
    };
    const fetchReviews = async () => {
       const { data } = await axios.get<GetReviewsResponse>(
@@ -104,6 +112,9 @@ const ReviewList = ({ productId }: Props) => {
                      </div>
                   )}
                </div>
+            )}
+            {summaryError && (
+               <p className="text-red-500 mt-2">{summaryError}</p>
             )}
          </div>
          <div className="flex flex-col gap-5">
