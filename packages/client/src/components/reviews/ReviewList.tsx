@@ -27,20 +27,11 @@ type GetSummaryResponse = {
 };
 
 const ReviewList = ({ productId }: Props) => {
-   const {
-      mutate: handleSummarize,
-      isPending: isSummarizing,
-      isError: isSummaryError,
-      data: summarizeResponse,
-   } = useMutation<GetSummaryResponse>({
+   const summaryMutation = useMutation<GetSummaryResponse>({
       mutationFn: () => summarizeReviews(),
    });
 
-   const {
-      data: reviewData,
-      isLoading: loading,
-      error,
-   } = useQuery<GetReviewsResponse>({
+   const reviewQuery = useQuery<GetReviewsResponse>({
       queryKey: ['reviews', productId],
       queryFn: async () => fetchReviews(),
    });
@@ -58,7 +49,7 @@ const ReviewList = ({ productId }: Props) => {
       return data;
    };
 
-   if (loading) {
+   if (reviewQuery.isLoading) {
       return (
          <div className="flex flex-col gap-5">
             {[1, 2, 3].map((i) => (
@@ -68,7 +59,7 @@ const ReviewList = ({ productId }: Props) => {
       );
    }
 
-   if (error) {
+   if (reviewQuery.isError) {
       return (
          <div className="text-red-500">
             Could not fetch reviews. Try again!!!
@@ -76,11 +67,12 @@ const ReviewList = ({ productId }: Props) => {
       );
    }
 
-   if (reviewData?.reviews.length === 0) {
+   if (reviewQuery.data?.reviews.length === 0) {
       return null;
    }
 
-   const currentSummary = summarizeResponse?.summary || reviewData?.summary;
+   const currentSummary =
+      summaryMutation.data?.summary || reviewQuery.data?.summary;
 
    return (
       <div>
@@ -90,26 +82,28 @@ const ReviewList = ({ productId }: Props) => {
             ) : (
                <div>
                   <Button
-                     onClick={() => handleSummarize()}
+                     onClick={() => summaryMutation.mutate()}
                      className="cursor-pointer"
-                     disabled={isSummarizing}
+                     disabled={summaryMutation.isPending}
                   >
                      <HiSparkles />
                      Summarize
                   </Button>
-                  {isSummarizing && (
+                  {summaryMutation.isPending && (
                      <div className="py-3">
                         <ReviewSkelton />
                      </div>
                   )}
                </div>
             )}
-            {isSummaryError && (
-               <p className="text-red-500 mt-2">{isSummaryError}</p>
+            {summaryMutation.isError && (
+               <p className="text-red-500 mt-2">
+                  Could not summarize reviews. Try again!
+               </p>
             )}
          </div>
          <div className="flex flex-col gap-5">
-            {reviewData?.reviews.map((review) => (
+            {reviewQuery.data?.reviews.map((review) => (
                <div key={review.id}>
                   <div className="font-semibold">{review.author}</div>
                   <div>
