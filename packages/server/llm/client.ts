@@ -1,11 +1,18 @@
 import OpenAI from 'openai';
 import { InferenceClient } from '@huggingface/inference';
+import fs from 'fs';
+import path from 'path';
 
 const openAIClient = new OpenAI({
    apiKey: process.env.OPENAI_API_KEY,
 });
 
 const inferenceClient = new InferenceClient(process.env.HF_TOKEN);
+
+const template = fs.readFileSync(
+   path.join(__dirname, '.', 'prompts', 'summarize-reviews.txt'),
+   'utf-8'
+);
 
 type GenerateTextOptions = {
    model?: string;
@@ -45,13 +52,20 @@ export const llmClient = {
       };
    },
 
-   async summarize(text: string) {
-      const output = await inferenceClient.summarization({
-         model: 'facebook/bart-large-cnn',
-         inputs: text,
-         provider: 'hf-inference',
+   async summarizeReviews(reviews: string) {
+      const chatCompletion = await inferenceClient.chatCompletion({
+         model: 'meta-llama/Llama-3.1-8B-Instruct:novita',
+         messages: [
+            {
+               role: 'system',
+               content: template,
+            },
+            {
+               role: 'user',
+               content: reviews,
+            },
+         ],
       });
-
-      return output.summary_text;
+      return chatCompletion.choices[0]?.message.content || '';
    },
 };

@@ -1,12 +1,5 @@
-import fs from 'fs';
-import path from 'path';
 import { llmClient } from '../llm/client';
 import { reviewRepository } from '../repositories/review.repository';
-
-const template = fs.readFileSync(
-   path.join(__dirname, '..', 'prompts', 'summarize-reviews.txt'),
-   'utf-8'
-);
 
 export const reviewService = {
    async summarizeReviews(productId: number): Promise<string> {
@@ -18,10 +11,7 @@ export const reviewService = {
 
       const reviews = await reviewRepository.getReviews(productId, 10);
       const joinedReviews = reviews.map((r) => r.content).join('\n\n');
-
-      const prompt = template.replace('{reviews}', joinedReviews);
-
-      const summary = await llmClient.summarize(joinedReviews);
+      const summary = await llmClient.summarizeReviews(joinedReviews);
 
       // Store the summary in the database with an expiration time
       await reviewRepository.storeReviewSummary(productId, summary);
