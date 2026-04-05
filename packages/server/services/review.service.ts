@@ -21,12 +21,7 @@ export const reviewService = {
 
       const prompt = template.replace('{reviews}', joinedReviews);
 
-      const { text: summary } = await llmClient.generateText({
-         model: 'gpt-4.1',
-         prompt,
-         temperature: 0.2,
-         maxTokens: 500,
-      });
+      const summary = await llmClient.summarize(joinedReviews);
 
       // Store the summary in the database with an expiration time
       await reviewRepository.storeReviewSummary(productId, summary);
